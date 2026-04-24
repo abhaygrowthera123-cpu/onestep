@@ -13,8 +13,8 @@ services:
       - key: SERVE_FRONTEND
         value: "true"
       - key: DB_DIALECT
-        value: mysql
-      - key: SYNC_ALTER
+                value: sqlite
+        - key: SYNC_ALTER
         value: "true"
       - key: VITE_API_URL
         value: ""

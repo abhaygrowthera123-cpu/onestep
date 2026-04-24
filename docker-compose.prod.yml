@@ -1,0 +1,57 @@
+version: "3.9"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: ""
+        VITE_GOOGLE_MAPS_KEY: ${VITE_GOOGLE_MAPS_KEY:-}
+    container_name: onestep-app
+    depends_on:
+      - mysql
+    ports:
+      - "3001:3001"
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      BACKEND_PORT: 3001
+      SERVE_FRONTEND: "true"
+      DB_DIALECT: mysql
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS}
+      FRONTEND_URL: ${FRONTEND_URL}
+      FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID}
+      ADMIN_EMAIL: ${ADMIN_EMAIL}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      ADMIN_JWT_SECRET: ${ADMIN_JWT_SECRET}
+      RAZORPAY_KEY_ID: ${RAZORPAY_KEY_ID}
+      RAZORPAY_KEY_SECRET: ${RAZORPAY_KEY_SECRET}
+      RAZORPAY_WEBHOOK_SECRET: ${RAZORPAY_WEBHOOK_SECRET}
+      STORE_DISPLAY_NAME: ${STORE_DISPLAY_NAME}
+      GST_DISPLAY_TEXT: ${GST_DISPLAY_TEXT}
+      SYNC_ALTER: ${SYNC_ALTER:-false}
+    restart: unless-stopped
+
+  mysql:
+    image: mysql:8.4
+    container_name: onestep-mysql
+    command: --default-authentication-plugin=caching_sha2_password
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    restart: unless-stopped
+
+volumes:
+  mysql_data:

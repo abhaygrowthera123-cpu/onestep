@@ -5,7 +5,7 @@ services:
     plan: free
     autoDeploy: true
     healthCheckPath: /api/health
-    buildCommand: npm install --prefix backend && npm install --prefix frontend && npm run build --prefix frontend
+    buildCommand: npm install --prefix backend && npm install --prefix frontend && npm run build --production=false --prefix frontend
     startCommand: npm start --prefix backend
     envVars:
       - key: NODE_ENV
@@ -13,7 +13,7 @@ services:
       - key: SERVE_FRONTEND
         value: "true"
       - key: DB_DIALECT
-        value: sqle
+        value: mysql
       - key: SYNC_ALTER
         value: "false"
       - key: ADMIN_EMAIL

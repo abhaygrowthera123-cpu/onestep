@@ -3,14 +3,14 @@ services:
     name: onestep-hub
     runtime: node
     plan: free
+    region: oregon
     autoDeploy: true
     healthCheckPath: /api/health
-    buildCommand: npm install --prefix backend && npm install --prefix frontend && npm run build --prefix frontend
-    startCommand: npm start --prefix backend
-    disk:
-      name: onestep-data
-      mountPath: /opt/render/project/src/backend/data
-      sizeGB: 1
+    buildCommand: |
+      npm install --prefix backend &&
+      npm install --prefix frontend &&
+      npm run build --prefix frontend
+    startCommand: node backend/src/index.js
     envVars:
       - key: NODE_ENV
         value: production
@@ -19,7 +19,9 @@ services:
       - key: DB_DIALECT
         value: sqlite
       - key: SYNC_ALTER
-        value: "false"
+        value: "true"
+      - key: VITE_API_URL
+        value: ""
       - key: ADMIN_EMAIL
         sync: false
       - key: ADMIN_PASSWORD
@@ -34,5 +36,7 @@ services:
         sync: false
       - key: RAZORPAY_WEBHOOK_SECRET
         sync: false
+      - key: RAZORPAY_ENABLE_MOCK
+        value: "true"
       - key: STORE_DISPLAY_NAME
         value: OneStep Hub

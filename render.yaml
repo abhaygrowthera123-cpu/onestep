@@ -7,17 +7,13 @@ services:
     healthCheckPath: /api/health
     buildCommand: npm install --prefix backend && npm install --prefix frontend && npm run build --prefix frontend
     startCommand: npm start --prefix backend
-    disk:
-      name: onestep-data
-      mountPath: /opt/render/project/src/backend/data
-      sizeGB: 1
     envVars:
       - key: NODE_ENV
         value: production
       - key: SERVE_FRONTEND
         value: "true"
       - key: DB_DIALECT
-        value: sqlite
+        value: sqle
       - key: SYNC_ALTER
         value: "false"
       - key: ADMIN_EMAIL

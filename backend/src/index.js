@@ -188,9 +188,10 @@ async function start() {
         const adminPassword = process.env.ADMIN_PASSWORD;
         if (!adminEmail || !adminPassword) {
           if (isProduction) {
-            throw new Error('ADMIN_EMAIL and ADMIN_PASSWORD are required in production');
+            logger.error('ADMIN_EMAIL and ADMIN_PASSWORD are required in production. Admin account will not be created automatically.');
+          } else {
+            logger.warn('Using development fallback admin credentials');
           }
-          logger.warn('Using development fallback admin credentials');
         }
         const admin = (await import('firebase-admin')).default;
         let firebaseUser;

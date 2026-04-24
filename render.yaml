@@ -3,10 +3,9 @@ services:
     name: onestep-hub
     runtime: node
     plan: free
-    region: oregon
     autoDeploy: true
     healthCheckPath: /api/health
-    buildCommand: npm install --prefix backend && npm install --prefix frontend && npm run build --prefix frontend
+    buildCommand: npm run build
     startCommand: node backend/src/index.js
     envVars:
       - key: NODE_ENV

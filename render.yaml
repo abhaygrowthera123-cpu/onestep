@@ -8,6 +8,8 @@ services:
     buildCommand: npm install --prefix backend && cd frontend && npm install --include=dev && npm run build && cd ..
     startCommand: node backend/src/index.js
     envVars:
+      - key: NODE_VERSION
+        value: "20.18.0"
       - key: NODE_ENV
         value: production
       - key: SERVE_FRONTEND

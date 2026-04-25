@@ -17,15 +17,17 @@ if (!admin.apps.length) {
   const projectId = process.env.FIREBASE_PROJECT_ID || 'onestep-hub-66f66';
   try {
     // Try with application default credentials first
-    admin.initializeApp({
-      credential: admin.credential.applicationDefault(),
-      projectId,
-    });
+    const credential = admin.credential.applicationDefault();
+    admin.initializeApp({ credential, projectId });
     logger.info(`Firebase Admin initialized with credentials (project: ${projectId})`);
   } catch {
-    // Fall back to project ID only (sufficient for verifyIdToken)
-    admin.initializeApp({ projectId });
-    logger.info(`Firebase Admin initialized (project: ${projectId})`);
+    try {
+      // Fall back to project ID only (sufficient for verifyIdToken)
+      admin.initializeApp({ projectId });
+      logger.info(`Firebase Admin initialized (project: ${projectId})`);
+    } catch (e2) {
+      logger.warn(`Firebase Admin initialization failed: ${e2.message}`);
+    }
   }
 }
 

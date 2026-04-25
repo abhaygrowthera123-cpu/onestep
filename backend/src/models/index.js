@@ -1,5 +1,6 @@
 import { Sequelize, DataTypes } from 'sequelize';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 
@@ -10,6 +11,14 @@ dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
 
 // Use SQLite for zero-config local development, MySQL for production
 const DB_DIALECT = process.env.DB_DIALECT || 'sqlite';
+
+// Ensure data directory exists BEFORE Sequelize tries to open the SQLite file
+if (DB_DIALECT === 'sqlite') {
+  const dataDir = path.resolve(__dirname, '../../data');
+  if (!fs.existsSync(dataDir)) {
+    fs.mkdirSync(dataDir, { recursive: true });
+  }
+}
 
 let sequelize;
 

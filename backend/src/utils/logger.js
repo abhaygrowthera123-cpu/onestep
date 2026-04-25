@@ -20,6 +20,28 @@ const logger = winston.createLogger({
   ),
   defaultMeta: { service: 'onestep-hub' },
   transports: [
+    // Always log to console so Render / Docker can capture output
+    new winston.transports.Console({
+      format: process.env.NODE_ENV === 'production'
+        ? winston.format.combine(
+            winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+            winston.format.printf(({ timestamp, level, message, ...meta }) => {
+              const metaStr = Object.keys(meta).length > 1
+                ? ` ${JSON.stringify(meta, null, 0)}`
+                : '';
+              return `${timestamp} ${level}: ${message}${metaStr}`;
+            })
+          )
+        : winston.format.combine(
+            winston.format.colorize(),
+            winston.format.printf(({ timestamp, level, message, ...meta }) => {
+              const metaStr = Object.keys(meta).length > 1 // 'service' is always there
+                ? ` ${JSON.stringify(meta, null, 0)}`
+                : '';
+              return `${timestamp} ${level}: ${message}${metaStr}`;
+            })
+          ),
+    }),
     // Error log file
     new winston.transports.File({
       filename: path.join(logsDir, 'error.log'),
@@ -35,22 +57,5 @@ const logger = winston.createLogger({
     }),
   ],
 });
-
-// In development, also log to console with colors
-if (process.env.NODE_ENV !== 'production') {
-  logger.add(
-    new winston.transports.Console({
-      format: winston.format.combine(
-        winston.format.colorize(),
-        winston.format.printf(({ timestamp, level, message, ...meta }) => {
-          const metaStr = Object.keys(meta).length > 1 // 'service' is always there
-            ? ` ${JSON.stringify(meta, null, 0)}`
-            : '';
-          return `${timestamp} ${level}: ${message}${metaStr}`;
-        })
-      ),
-    })
-  );
-}
 
 export default logger;

@@ -147,20 +147,19 @@ app.use(errorHandler);
 // ── Start Server ───────────────────────────────────────────────
 async function start() {
   const isProduction = process.env.NODE_ENV === 'production';
-  try {
-    // Ensure data directory exists for SQLite
-    const dataDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../data');
-    if (!fs.existsSync(dataDir)) {
-      fs.mkdirSync(dataDir, { recursive: true });
-    }
 
+  // 1. Connect to database
+  try {
     await sequelize.authenticate();
     logger.info(`Database connected (${sequelize.getDialect()})`);
+  } catch (error) {
+    logger.error(`Database connection failed: ${error.message}`);
+    // Still start the server so health check can respond (helpful for debugging on Render)
+  }
 
-    // Sync models with retry (MySQL can deadlock during alter)
-    // Using alter: false by default to prevent "Too many keys" error on restarts
+  // 2. Sync models
+  try {
     const syncOptions = { alter: process.env.SYNC_ALTER === 'true' || false };
-    
     for (let attempt = 1; attempt <= 3; attempt++) {
       try {
         await sequelize.sync(syncOptions);
@@ -175,33 +174,34 @@ async function start() {
         }
       }
     }
+  } catch (error) {
+    logger.error(`Model sync failed: ${error.message}`);
+  }
 
-    // Seed sample data if tables are empty
+  // 3. Seed sample data if tables are empty
+  try {
     await seedDatabase();
+  } catch (error) {
+    logger.warn(`Seeding skipped: ${error.message}`);
+  }
 
-    // Auto-create admin account if it doesn't exist
-    try {
-      const { User } = await import('./models/index.js');
-      const adminExists = await User.findOne({ where: { role: 'admin' } });
-      if (!adminExists) {
-        const adminEmail = process.env.ADMIN_EMAIL;
-        const adminPassword = process.env.ADMIN_PASSWORD;
-        if (!adminEmail || !adminPassword) {
-          if (isProduction) {
-            logger.error('ADMIN_EMAIL and ADMIN_PASSWORD are required in production. Admin account will not be created automatically.');
-          } else {
-            logger.warn('Using development fallback admin credentials');
-          }
-        }
+  // 4. Auto-create admin account (best-effort — never crash the server)
+  try {
+    const { User } = await import('./models/index.js');
+    const adminExists = await User.findOne({ where: { role: 'admin' } });
+    if (!adminExists) {
+      const adminEmail = process.env.ADMIN_EMAIL || 'admin@onestep.com';
+      const adminPassword = process.env.ADMIN_PASSWORD || 'Admin@123';
+
+      // Try Firebase admin SDK — this requires service account credentials
+      try {
         const admin = (await import('firebase-admin')).default;
         let firebaseUser;
-        const resolvedAdminEmail = adminEmail || 'admin@onestep.com';
-        const resolvedAdminPassword = adminPassword || 'Admin@123';
         try {
-          firebaseUser = await admin.auth().getUserByEmail(resolvedAdminEmail);
+          firebaseUser = await admin.auth().getUserByEmail(adminEmail);
         } catch {
           firebaseUser = await admin.auth().createUser({
-            email: resolvedAdminEmail, password: resolvedAdminPassword,
+            email: adminEmail, password: adminPassword,
             displayName: 'Admin', emailVerified: true,
           });
         }
@@ -209,58 +209,79 @@ async function start() {
           where: { uid: firebaseUser.uid },
           defaults: {
             uid: firebaseUser.uid,
-            email: resolvedAdminEmail,
+            email: adminEmail,
             displayName: 'Admin',
             photoURL: '',
             role: 'admin',
           },
         });
-        logger.info(`Admin account created: ${resolvedAdminEmail}`);
-      } else {
-        logger.info(`Admin account exists: ${adminExists.email}`);
-      }
-
-      // Auto-create standard test user account
-      const testUserExists = await User.findOne({ where: { email: 'user@onestep.com' } });
-      if (!testUserExists && !isProduction) {
-        const userEmail = 'user@onestep.com';
-        const userPass = 'User@123';
-        const admin = (await import('firebase-admin')).default;
-        let firebaseUser;
+        logger.info(`Admin account created via Firebase: ${adminEmail}`);
+      } catch (fbErr) {
+        // Firebase failed — create a local-only admin account for JWT-based login
+        logger.warn(`Firebase admin setup failed: ${fbErr.message}`);
         try {
-          firebaseUser = await admin.auth().getUserByEmail(userEmail);
-        } catch {
-          firebaseUser = await admin.auth().createUser({
-            email: userEmail, password: userPass,
-            displayName: 'Test User', emailVerified: true,
+          await User.findOrCreate({
+            where: { email: adminEmail },
+            defaults: {
+              uid: `local_admin_${Date.now()}`,
+              email: adminEmail,
+              displayName: 'Admin',
+              photoURL: '',
+              role: 'admin',
+            },
           });
+          logger.info(`Local admin account created: ${adminEmail}`);
+        } catch (localErr) {
+          logger.warn(`Local admin creation also failed: ${localErr.message}`);
         }
-        await User.findOrCreate({
-          where: { uid: firebaseUser.uid },
-          defaults: {
-            uid: firebaseUser.uid,
-            email: userEmail,
-            displayName: 'Test User',
-            photoURL: '',
-            role: 'user',
-          },
-        });
-        logger.info(`Test user account created: ${userEmail}`);
       }
-    } catch (err) {
-      logger.warn(`Account auto-setup skipped: ${err.message}`);
+    } else {
+      logger.info(`Admin account exists: ${adminExists.email}`);
     }
 
-  } catch (error) {
-    logger.error(`Database connection failed: ${error.message}`);
-    process.exit(1);
+    // Auto-create test user in development only
+    if (!isProduction) {
+      try {
+        const testUserExists = await User.findOne({ where: { email: 'user@onestep.com' } });
+        if (!testUserExists) {
+          const admin = (await import('firebase-admin')).default;
+          let firebaseUser;
+          try {
+            firebaseUser = await admin.auth().getUserByEmail('user@onestep.com');
+          } catch {
+            firebaseUser = await admin.auth().createUser({
+              email: 'user@onestep.com', password: 'User@123',
+              displayName: 'Test User', emailVerified: true,
+            });
+          }
+          await User.findOrCreate({
+            where: { uid: firebaseUser.uid },
+            defaults: {
+              uid: firebaseUser.uid,
+              email: 'user@onestep.com',
+              displayName: 'Test User',
+              photoURL: '',
+              role: 'user',
+            },
+          });
+          logger.info('Test user account created: user@onestep.com');
+        }
+      } catch (err) {
+        logger.warn(`Test user setup skipped: ${err.message}`);
+      }
+    }
+  } catch (err) {
+    logger.warn(`Account auto-setup skipped: ${err.message}`);
   }
 
+  // 5. Start listening — this ALWAYS runs regardless of above errors
   app.listen(PORT, '0.0.0.0', () => {
     logger.info(`🚀 Backend running on http://localhost:${PORT}`);
     logger.info(`   Environment: ${process.env.NODE_ENV || 'development'}`);
+    logger.info(`   Database: ${process.env.DB_DIALECT || 'sqlite'}`);
     logger.info(`   API: /api/v1/* (versioned) + /api/* (legacy)`);
   });
 }
 
-start(); // restart
+start();
+

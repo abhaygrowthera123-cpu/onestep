@@ -5,7 +5,7 @@ services:
     plan: free
     autoDeploy: true
     healthCheckPath: /api/health
-    buildCommand: npm run build
+    buildCommand: npm install --prefix backend && npm install --prefix frontend --production=false && npm run build --prefix frontend
     startCommand: node backend/src/index.js
     envVars:
       - key: NODE_ENV
@@ -13,8 +13,8 @@ services:
       - key: SERVE_FRONTEND
         value: "true"
       - key: DB_DIALECT
-        value: sqlite
-      - key: SYNC_ALTER
+                value: sqlite
+        - key: SYNC_ALTER
         value: "true"
       - key: VITE_API_URL
         value: ""

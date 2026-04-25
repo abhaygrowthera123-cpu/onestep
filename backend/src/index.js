@@ -40,10 +40,10 @@ const PORT = parseInt(process.env.PORT || process.env.BACKEND_PORT || '3001');
 const frontendDistPath = path.resolve(__dirname, '../../frontend/dist');
 
 // ── Security Middleware ────────────────────────────────────────
-app.use(helmet({
-  contentSecurityPolicy: false, // Temporarily disabled to fix Firebase Auth blockages
-  crossOriginResourcePolicy: { policy: 'cross-origin' },
-}));
+// app.use(helmet({
+//   contentSecurityPolicy: false, // Temporarily disabled to fix Firebase Auth blockages
+//   crossOriginResourcePolicy: { policy: 'cross-origin' },
+// }));
 
 app.use(cors({
   origin: process.env.ALLOWED_ORIGINS

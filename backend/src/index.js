@@ -41,15 +41,7 @@ const frontendDistPath = path.resolve(__dirname, '../../frontend/dist');
 
 // ── Security Middleware ────────────────────────────────────────
 app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      ...helmet.contentSecurityPolicy.getDefaultDirectives(),
-      "connect-src": ["'self'", "https://identitytoolkit.googleapis.com", "https://securetoken.googleapis.com", "https://*.firebaseio.com", "https://*.firebaseapp.com", "https://apis.google.com", "https://*.onrender.com"],
-      "img-src": ["'self'", "data:", "blob:", "https://*.googleapis.com", "https://*.gstatic.com", "https://images.unsplash.com", "https://*.onrender.com", "https://*.razorpay.com"],
-      "script-src": ["'self'", "'unsafe-inline'", "https://apis.google.com", "https://www.gstatic.com", "https://checkout.razorpay.com"],
-      "frame-src": ["'self'", "https://*.firebaseapp.com", "https://checkout.razorpay.com"],
-    },
-  },
+  contentSecurityPolicy: false, // Temporarily disabled to fix Firebase Auth blockages
   crossOriginResourcePolicy: { policy: 'cross-origin' },
 }));
 

@@ -56,7 +56,7 @@ router.post('/admin-login', async (req, res) => {
     const uid = 'admin-' + crypto.createHash('md5').update(email).digest('hex').slice(0, 12);
 
     const [dbUser] = await User.findOrCreate({
-      where: { uid },
+      where: { email },
       defaults: {
         uid,
         email,

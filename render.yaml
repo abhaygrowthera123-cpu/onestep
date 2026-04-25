@@ -5,7 +5,7 @@ services:
     plan: free
     autoDeploy: true
     healthCheckPath: /api/health
-    buildCommand: npm install --prefix backend && cd frontend && npm install --include=dev && npm run build && cd ..
+    buildCommand: npm install --prefix backend && npm rebuild sqlite3 --build-from-source --prefix backend && cd frontend && npm install --include=dev && npm run build && cd ..
     startCommand: node backend/src/index.js
     envVars:
       - key: NODE_VERSION

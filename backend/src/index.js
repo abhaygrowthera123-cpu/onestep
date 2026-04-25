@@ -288,7 +288,7 @@ async function start() {
 
   // 5. Start listening — this ALWAYS runs regardless of above errors
   app.listen(PORT, '0.0.0.0', () => {
-    logger.info(`🚀 Backend running on http://localhost:${PORT}`);
+    logger.info(`🚀 Backend running (v1.0.5-debug-csp) on http://localhost:${PORT}`);
     logger.info(`   Environment: ${process.env.NODE_ENV || 'development'}`);
     logger.info(`   Database: ${process.env.DB_DIALECT || 'sqlite'}`);
     logger.info(`   API: /api/v1/* (versioned) + /api/* (legacy)`);

@@ -5,7 +5,7 @@ services:
     plan: free
     autoDeploy: true
     healthCheckPath: /api/health
-    buildCommand: npm install --prefix backend && npm install --prefix frontend && npm run build --prefix frontend
+    buildCommand: npm install --prefix backend && cd frontend && npm install --include=dev && npm run build && cd ..
     startCommand: node backend/src/index.js
     envVars:
       - key: NODE_ENV

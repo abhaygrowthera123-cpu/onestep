@@ -68,8 +68,19 @@ app.use(morgan(':method :url :status :res[content-length] - :response-time ms', 
   skip: (req) => req.path === '/api/health' || req.path === '/api/v1/health',
 }));
 
+// ── Health Check (MUST be before rate limiter) ─────────────────
+app.get('/api/health', (_req, res) => {
+  res.json({ status: 'ok', version: 'v1', timestamp: new Date().toISOString() });
+});
+app.get('/api/v1/health', (_req, res) => {
+  res.json({ status: 'ok', version: 'v1', timestamp: new Date().toISOString() });
+});
+
 // ── Rate Limiting ──────────────────────────────────────────────
-app.use('/api', generalLimiter);
+app.use('/api', (req, res, next) => {
+  if (req.path === '/health' || req.path === '/v1/health') return next();
+  generalLimiter(req, res, next);
+});
 app.use('/api/auth', authLimiter);
 app.use('/api/v1/auth', authLimiter);
 app.use('/api/upload', uploadLimiter);
@@ -127,14 +138,6 @@ if (process.env.SERVE_FRONTEND === 'true' || process.env.NODE_ENV === 'productio
     logger.warn(`Frontend dist not found at ${frontendDistPath}. Skipping static hosting.`);
   }
 }
-
-// ── Health Check ───────────────────────────────────────────────
-app.get('/api/health', (_req, res) => {
-  res.json({ status: 'ok', version: 'v1', timestamp: new Date().toISOString() });
-});
-app.get('/api/v1/health', (_req, res) => {
-  res.json({ status: 'ok', version: 'v1', timestamp: new Date().toISOString() });
-});
 
 // ── 404 Handler ────────────────────────────────────────────────
 app.use((_req, res) => {

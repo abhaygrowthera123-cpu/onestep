@@ -22,7 +22,16 @@ if (DB_DIALECT === 'sqlite') {
 
 let sequelize;
 
-if (DB_DIALECT === 'mysql') {
+if (process.env.DATABASE_URL) {
+  // PostgreSQL (managed, e.g., Render/Heroku)
+  sequelize = new Sequelize(process.env.DATABASE_URL, {
+    dialect: 'postgres',
+    logging: false,
+    dialectOptions: {
+      ssl: process.env.NODE_ENV === 'production' ? { require: true, rejectUnauthorized: false } : false
+    }
+  });
+} else if (DB_DIALECT === 'mysql') {
   sequelize = new Sequelize(
     process.env.DB_NAME || 'onestep_db',
     process.env.DB_USER || 'root',

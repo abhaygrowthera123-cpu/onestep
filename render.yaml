@@ -1,3 +1,7 @@
+databases:
+  - name: onestep-db
+    plan: free
+
 services:
   - type: web
     name: onestep-hub
@@ -5,7 +9,7 @@ services:
     plan: free
     autoDeploy: true
     healthCheckPath: /api/health
-    buildCommand: npm install --prefix backend && npm rebuild sqlite3 --build-from-source --prefix backend && cd frontend && npm install --include=dev && npm run build && cd ..
+    buildCommand: npm install --prefix backend && cd frontend && npm install --include=dev && npm run build && cd ..
     startCommand: node backend/src/index.js
     envVars:
       - key: NODE_VERSION
@@ -14,8 +18,10 @@ services:
         value: production
       - key: SERVE_FRONTEND
         value: "true"
-      - key: DB_DIALECT
-        value: sqlite
+      - key: DATABASE_URL
+        fromDatabase:
+          name: onestep-db
+          property: connectionString
       - key: SYNC_ALTER
         value: "true"
       - key: VITE_API_URL

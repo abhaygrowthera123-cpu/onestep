@@ -39,19 +39,22 @@ const app = express();
 const PORT = parseInt(process.env.PORT || process.env.BACKEND_PORT || '3001');
 const frontendDistPath = path.resolve(__dirname, '../../frontend/dist');
 
-// ── Security Middleware ────────────────────────────────────────
-// Diagnostic: Explicitly remove CSP headers to find the source of the double-header issue
-app.use((req, res, next) => {
-  res.removeHeader('Content-Security-Policy');
-  res.removeHeader('X-Content-Security-Policy');
-  res.removeHeader('X-WebKit-CSP');
-  next();
-});
+// ── Trust Proxy (Required for Render + express-rate-limit) ─────
+app.set('trust proxy', 1);
 
-// app.use(helmet({
-//   contentSecurityPolicy: false, // Temporarily disabled to fix Firebase Auth blockages
-//   crossOriginResourcePolicy: { policy: 'cross-origin' },
-// }));
+// ── Security Middleware ────────────────────────────────────────
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      ...helmet.contentSecurityPolicy.getDefaultDirectives(),
+      "connect-src": ["'self'", "https://*.googleapis.com", "https://*.firebaseio.com", "https://*.firebaseapp.com", "https://apis.google.com", "https://*.onrender.com", "https://*.razorpay.com"],
+      "img-src": ["'self'", "data:", "blob:", "https://*.googleapis.com", "https://*.gstatic.com", "https://images.unsplash.com", "https://*.onrender.com", "https://*.razorpay.com"],
+      "script-src": ["'self'", "'unsafe-inline'", "https://apis.google.com", "https://www.gstatic.com", "https://checkout.razorpay.com"],
+      "frame-src": ["'self'", "https://*.firebaseapp.com", "https://checkout.razorpay.com"],
+    },
+  },
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
+}));
 
 app.use(cors({
   origin: process.env.ALLOWED_ORIGINS
@@ -288,8 +291,8 @@ async function start() {
 
   // 5. Start listening — this ALWAYS runs regardless of above errors
   app.listen(PORT, '0.0.0.0', () => {
-    logger.info(`🚀 Backend running (v1.0.5-debug-csp) on http://localhost:${PORT}`);
-    logger.info(`   Environment: ${process.env.NODE_ENV || 'development'}`);
+    logger.info(`🚀 Backend running (v1.0.6-stable) on http://localhost:${PORT}`);
+    logger.info(`   Environment: ${process.env.NODE_ENV || 'production'}`);
     logger.info(`   Database: ${process.env.DB_DIALECT || 'sqlite'}`);
     logger.info(`   API: /api/v1/* (versioned) + /api/* (legacy)`);
   });

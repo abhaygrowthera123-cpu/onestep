@@ -223,7 +223,7 @@ export const Home = () => {
               <Link to="/search" className="text-blue-600 text-xs font-black flex items-center hover:underline">View All <ChevronRight className="h-4 w-4" /></Link>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
-              {categories.slice(0, 6).map(cat => (
+              {(Array.isArray(categories) ? categories : []).slice(0, 6).map(cat => (
                 <Link key={cat.id} to={`/search?category=${encodeURIComponent(cat.name)}`}
                   className="relative rounded-2xl overflow-hidden aspect-[4/3] group shadow-sm border border-slate-100 hover:shadow-xl transition-all duration-300">
                   <img src={resolveImageUrl(cat.image)} alt={cat.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
@@ -252,7 +252,7 @@ export const Home = () => {
               <Link to="/search?sort=price-low" className="text-blue-600 text-xs font-black flex items-center">See All <ChevronRight className="h-4 w-4" /></Link>
             </div>
             <div className="px-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-              {dealProducts.map(product => (
+              {(Array.isArray(dealProducts) ? dealProducts : []).map(product => (
                 <MiniProductCard key={product.id} product={product} />
               ))}
             </div>
@@ -288,7 +288,7 @@ export const Home = () => {
             </div>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              {products.map(product => (
+              {(Array.isArray(products) ? products : []).map(product => (
                 <MiniProductCard key={product.id} product={product} />
               ))}
             </div>

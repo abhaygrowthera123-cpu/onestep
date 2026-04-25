@@ -65,7 +65,7 @@ export const Navbar = () => {
                 <div className="space-y-4">
                   <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-50 pb-2">Shop by Category</h4>
                   <div className="grid grid-cols-1 gap-1">
-                    {categories.slice(0, 8).map(cat => (
+                    {(Array.isArray(categories) ? categories : []).slice(0, 8).map(cat => (
                       <Link 
                         key={cat.id} 
                         to={`/search?category=${encodeURIComponent(cat.name)}`}
@@ -181,7 +181,7 @@ export const Navbar = () => {
                 <div className="space-y-3">
                   <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Shop by Category</h4>
                   <div className="grid grid-cols-3 gap-2">
-                    {categories.slice(0, 6).map(cat => (
+                    {(Array.isArray(categories) ? categories : []).slice(0, 6).map(cat => (
                       <Link
                         key={cat.id}
                         to={`/search?category=${encodeURIComponent(cat.name)}`}

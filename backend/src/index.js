@@ -40,6 +40,14 @@ const PORT = parseInt(process.env.PORT || process.env.BACKEND_PORT || '3001');
 const frontendDistPath = path.resolve(__dirname, '../../frontend/dist');
 
 // ── Security Middleware ────────────────────────────────────────
+// Diagnostic: Explicitly remove CSP headers to find the source of the double-header issue
+app.use((req, res, next) => {
+  res.removeHeader('Content-Security-Policy');
+  res.removeHeader('X-Content-Security-Policy');
+  res.removeHeader('X-WebKit-CSP');
+  next();
+});
+
 // app.use(helmet({
 //   contentSecurityPolicy: false, // Temporarily disabled to fix Firebase Auth blockages
 //   crossOriginResourcePolicy: { policy: 'cross-origin' },

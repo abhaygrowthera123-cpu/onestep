@@ -49,7 +49,7 @@ app.use(helmet({
     directives: {
       ...helmet.contentSecurityPolicy.getDefaultDirectives(),
       "connect-src": ["'self'", "https://*.googleapis.com", "https://*.firebaseio.com", "https://*.firebaseapp.com", "https://apis.google.com", "https://*.onrender.com", "https://*.razorpay.com"],
-      "img-src": ["'self'", "data:", "blob:", "https://*.googleapis.com", "https://*.gstatic.com", "https://images.unsplash.com", "https://*.onrender.com", "https://*.razorpay.com"],
+      "img-src": ["'self'", "data:", "blob:", "https://*.googleapis.com", "https://*.gstatic.com", "https://images.unsplash.com", "https://*.onrender.com", "https://*.razorpay.com", "https://*.google.com", "https://www.google.com"],
       "script-src": ["'self'", "'unsafe-inline'", "https://apis.google.com", "https://www.gstatic.com", "https://checkout.razorpay.com"],
       "frame-src": ["'self'", "https://*.firebaseapp.com", "https://checkout.razorpay.com"],
     },

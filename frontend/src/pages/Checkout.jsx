@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 import { api } from '../services/api';
 import {
   CreditCard,
@@ -212,6 +213,17 @@ export const Checkout = () => {
   const { items, totalPrice, clearCart } = useCart();
   const { user, profile, updateProfile } = useAuth();
   const navigate = useNavigate();
+  const { showToast } = useToast();
+
+  /** Release stock/wallet when Razorpay payment is abandoned or fails */
+  const abandonPendingOrder = useCallback(async (orderId) => {
+    if (!orderId) return;
+    try {
+      await api.cancelCheckout(orderId);
+    } catch (e) {
+      console.error('Failed to release order reservation:', e);
+    }
+  }, []);
 
   /* ── State ──────────────────────────────────────────────────── */
   const [step, setStep] = useState(1); // 1=address, 2=payment, 3=done
@@ -253,10 +265,11 @@ export const Checkout = () => {
       }
     } catch (err) {
       console.error('Failed to fetch addresses:', err);
+      showToast('Could not load saved addresses', 'error');
     } finally {
       setAddressesLoading(false);
     }
-  }, []);
+  }, [showToast, selectedAddress]);
 
   useEffect(() => {
     fetchAddresses();
@@ -391,7 +404,9 @@ export const Checkout = () => {
             } catch { /* */ }
           } catch (err) {
             console.error('Mock verification failed:', err);
-            setError('Payment simulation failed. Please try again.');
+            await abandonPendingOrder(order.id);
+            setError('Payment simulation failed. Your cart items were released — please try again.');
+            showToast('Payment failed — stock restored', 'error');
           } finally {
             setLoading(false);
           }
@@ -483,26 +498,28 @@ export const Checkout = () => {
               }
             } catch (err) {
               console.error('Verification error:', err);
-              setError('Payment verification failed. Please contact support.');
+              await abandonPendingOrder(order.id);
+              const msg = err.response?.data?.error || 'Payment verification failed. Items were released — you can try checkout again.';
+              setError(msg);
+              showToast('Payment could not be verified', 'error');
             } finally {
               setLoading(false);
             }
           },
           modal: {
             ondismiss: async () => {
-              try {
-                await api.cancelCheckout(order.id);
-              } catch {
-                /* */
-              }
+              await abandonPendingOrder(order.id);
               setLoading(false);
             },
           },
         };
 
         const rzp = new window.Razorpay(options);
-        rzp.on('payment.failed', (err) => {
-          setError(`Payment Failed: ${err.error.description}`);
+        rzp.on('payment.failed', async (err) => {
+          await abandonPendingOrder(order.id);
+          const desc = err?.error?.description || 'Payment failed';
+          setError(`${desc}. Your items were released — please try again.`);
+          showToast('Payment failed', 'error');
           setLoading(false);
         });
         rzp.open();
@@ -527,6 +544,7 @@ export const Checkout = () => {
         err.response?.data?.details?.[0] ||
         'Checkout failed. Please try again.';
       setError(msg);
+      showToast(msg, 'error');
     } finally {
       setLoading(false);
     }

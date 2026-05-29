@@ -3,6 +3,8 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { api } from '../services/api';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
+import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 import { 
   Star, 
   ShoppingCart, 
@@ -36,6 +38,54 @@ export const ProductDetails = () => {
     const [selectedColor, setSelectedColor] = useState('');
     const { addToCart } = useCart();
     const { toggleWishlist, isInWishlist } = useWishlist();
+    const { user } = useAuth();
+    const { showToast } = useToast();
+
+    const [showReviewForm, setShowReviewForm] = useState(false);
+    const [reviewRating, setReviewRating] = useState(5);
+    const [reviewTitle, setReviewTitle] = useState('');
+    const [reviewComment, setReviewComment] = useState('');
+    const [reviewSubmitting, setReviewSubmitting] = useState(false);
+
+    const userAlreadyReviewed = user && reviews.some((r) => r.userId === user.uid);
+
+    const loadReviews = async (productId) => {
+        const reviewsRes = await api.getReviews(productId);
+        setReviews(reviewsRes.data || []);
+    };
+
+    const handleSubmitReview = async (e) => {
+        e.preventDefault();
+        if (!user) {
+            navigate('/login');
+            return;
+        }
+        if (!reviewComment.trim() || reviewComment.trim().length < 5) {
+            showToast('Please write at least 5 characters', 'error');
+            return;
+        }
+        setReviewSubmitting(true);
+        try {
+            await api.addReview(id, {
+                rating: reviewRating,
+                title: reviewTitle.trim() || undefined,
+                comment: reviewComment.trim(),
+            });
+            showToast('Review submitted', 'success');
+            setShowReviewForm(false);
+            setReviewTitle('');
+            setReviewComment('');
+            setReviewRating(5);
+            const productData = await api.getProduct(id);
+            setProduct(productData);
+            setReviewStats({ count: productData.reviewsCount, rating: productData.rating });
+            await loadReviews(id);
+        } catch (err) {
+            showToast(err.response?.data?.error || 'Could not submit review', 'error');
+        } finally {
+            setReviewSubmitting(false);
+        }
+    };
 
     useEffect(() => {
         const fetchProduct = async () => {
@@ -48,9 +98,7 @@ export const ProductDetails = () => {
                     if (productData.sizes?.length > 0) setSelectedSize(productData.sizes[0]);
                     if (productData.colors?.length > 0) setSelectedColor(productData.colors[0]);
                     
-                    // Fetch reviews
-                    const reviewsRes = await api.getReviews(id);
-                    setReviews(reviewsRes.data || []);
+                    await loadReviews(id);
                     setReviewStats({ count: productData.reviewsCount, rating: productData.rating });
 
                     // Fetch related
@@ -228,12 +276,24 @@ export const ProductDetails = () => {
                         <div className="flex items-center justify-between">
                             <h3 className="text-sm font-black text-gray-900 uppercase tracking-widest">Customer Reviews</h3>
                             <div className="flex items-center space-x-4">
+                                {user && !userAlreadyReviewed && (
                                 <button 
-                                    onClick={() => navigate(`/orders`)} // Directing to orders as reviews usually require verified purchase
+                                    type="button"
+                                    onClick={() => setShowReviewForm((v) => !v)}
                                     className="text-[10px] font-black text-blue-600 uppercase tracking-widest hover:underline"
                                 >
-                                    Write a Review
+                                    {showReviewForm ? 'Cancel' : 'Write a Review'}
                                 </button>
+                                )}
+                                {!user && (
+                                <button 
+                                    type="button"
+                                    onClick={() => navigate('/login')}
+                                    className="text-[10px] font-black text-blue-600 uppercase tracking-widest hover:underline"
+                                >
+                                    Sign in to Review
+                                </button>
+                                )}
                                 <div className="flex items-center space-x-2 border-l border-gray-100 pl-4">
                                     <Star className="h-4 w-4 text-amber-400 fill-current" />
                                     <span className="text-sm font-black text-gray-900">{reviewStats.rating}</span>
@@ -241,6 +301,46 @@ export const ProductDetails = () => {
                                 </div>
                             </div>
                         </div>
+
+                        {showReviewForm && (
+                            <form onSubmit={handleSubmitReview} className="space-y-4 p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                                <p className="text-[10px] font-bold text-gray-500">Verified buyers get a verified badge after delivery.</p>
+                                <div className="flex gap-1">
+                                    {[1, 2, 3, 4, 5].map((n) => (
+                                        <button
+                                            key={n}
+                                            type="button"
+                                            onClick={() => setReviewRating(n)}
+                                            className="p-1"
+                                        >
+                                            <Star className={cn('h-6 w-6', n <= reviewRating ? 'text-amber-400 fill-current' : 'text-gray-200')} />
+                                        </button>
+                                    ))}
+                                </div>
+                                <input
+                                    type="text"
+                                    placeholder="Title (optional)"
+                                    value={reviewTitle}
+                                    onChange={(e) => setReviewTitle(e.target.value)}
+                                    className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm font-medium"
+                                />
+                                <textarea
+                                    placeholder="Your review (min 5 characters)"
+                                    value={reviewComment}
+                                    onChange={(e) => setReviewComment(e.target.value)}
+                                    rows={4}
+                                    className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm font-medium"
+                                    required
+                                />
+                                <button
+                                    type="submit"
+                                    disabled={reviewSubmitting}
+                                    className="w-full py-3 rounded-xl bg-gray-900 text-white font-black text-xs uppercase tracking-widest disabled:opacity-50"
+                                >
+                                    {reviewSubmitting ? 'Submitting...' : 'Submit Review'}
+                                </button>
+                            </form>
+                        )}
 
                         {reviews.length > 0 ? (
                             <div className="space-y-6">

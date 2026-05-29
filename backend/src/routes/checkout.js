@@ -388,6 +388,14 @@ router.post('/cancel', authenticate, validate(cancelCheckoutSchema), async (req,
       await transaction.rollback();
       return res.status(404).json({ error: 'Order not found' });
     }
+    if (order.paymentStatus === 'paid') {
+      await transaction.rollback();
+      return res.status(400).json({ error: 'Order is already paid' });
+    }
+    if (order.status === 'cancelled' && order.paymentStatus === 'failed') {
+      await transaction.rollback();
+      return res.json({ success: true, message: 'Already cancelled' });
+    }
     if (order.paymentStatus !== 'awaiting_payment') {
       await transaction.rollback();
       return res.status(400).json({ error: 'Order cannot be cancelled' });

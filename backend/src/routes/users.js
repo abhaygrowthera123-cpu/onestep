@@ -53,9 +53,18 @@ router.get('/:uid', authenticate, requireAdmin, async (req, res, next) => {
 // POST /api/v1/users — sync user on login (auth required)
 router.post('/', authenticate, validate(registerSyncSchema), async (req, res, next) => {
   try {
+    const { addresses: _addresses, ...syncFields } = req.body;
     const [user] = await User.findOrCreate({
       where: { uid: req.user.uid },
-      defaults: { ...req.body, uid: req.user.uid },
+      defaults: {
+        uid: req.user.uid,
+        email: syncFields.email,
+        displayName: syncFields.displayName || 'User',
+        photoURL: syncFields.photoURL || '',
+        phone: syncFields.phone || null,
+        role: 'user',
+        wishlist: Array.isArray(syncFields.wishlist) ? syncFields.wishlist : [],
+      },
     });
     
     // Refresh to get associations if needed

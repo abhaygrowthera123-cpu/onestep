@@ -54,8 +54,6 @@ export const AuthProvider = ({ children }) => {
                             displayName: firebaseUser.displayName || 'User',
                             photoURL: firebaseUser.photoURL || '',
                             role: 'user',
-                            createdAt: new Date().toISOString(),
-                            addresses: [],
                             wishlist: [],
                         };
                         

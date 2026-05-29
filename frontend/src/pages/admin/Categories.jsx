@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../../services/api';
+import { resolveImageUrl } from '../../lib/imageUrl';
 import { Plus, Edit2, Trash2, X, Image as ImageIcon, Tag } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -9,6 +10,7 @@ export const AdminCategories = () => {
     const [showModal, setShowModal] = useState(false);
     const [editingCategory, setEditingCategory] = useState(null);
     const [formData, setFormData] = useState({ name: '', image: '', description: '' });
+    const [uploading, setUploading] = useState(false);
 
     useEffect(() => {
         fetchCategories();
@@ -98,7 +100,7 @@ export const AdminCategories = () => {
                         >
                             <div className="aspect-[4/3] relative overflow-hidden">
                                 <img 
-                                    src={category.image} 
+                                    src={resolveImageUrl(category.image)} 
                                     alt={category.name} 
                                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
                                     referrerPolicy="no-referrer" 
@@ -175,6 +177,24 @@ export const AdminCategories = () => {
                                                 onChange={e => setFormData({ ...formData, name: e.target.value })} 
                                             />
                                         </div>
+                                        {formData.image && (
+                                            <div className="relative aspect-[16/9] w-full rounded-2xl overflow-hidden border border-slate-100 bg-slate-50 group">
+                                                <img 
+                                                    src={resolveImageUrl(formData.image)} 
+                                                    alt="Preview" 
+                                                    className="w-full h-full object-cover" 
+                                                    referrerPolicy="no-referrer" 
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setFormData(prev => ({ ...prev, image: '' }))}
+                                                    className="absolute top-2.5 right-2.5 p-1.5 bg-slate-900/60 backdrop-blur-md rounded-xl text-white hover:bg-rose-600 transition-all"
+                                                >
+                                                    <X className="h-3.5 w-3.5" />
+                                                </button>
+                                            </div>
+                                        )}
+
                                         <div className="space-y-1.5">
                                             <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Cover Image URL</label>
                                             <div className="relative">
@@ -187,6 +207,48 @@ export const AdminCategories = () => {
                                                 />
                                                 <ImageIcon className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-300" />
                                             </div>
+                                        </div>
+
+                                        <div className="space-y-1.5">
+                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Or Upload Local Image</label>
+                                            <label className="w-full h-16 rounded-xl border-2 border-dashed border-slate-200 hover:border-blue-500 hover:bg-blue-50/30 flex items-center justify-center cursor-pointer transition-all gap-2.5 group">
+                                                {uploading ? (
+                                                    <div className="flex items-center space-x-2">
+                                                        <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                                                        <span className="text-[10px] font-black uppercase text-slate-400">Uploading to server...</span>
+                                                    </div>
+                                                ) : (
+                                                    <>
+                                                        <Plus className="h-4 w-4 text-slate-400 group-hover:text-blue-600" />
+                                                        <span className="text-[10px] font-black uppercase text-slate-400 group-hover:text-blue-600">Select Image File</span>
+                                                    </>
+                                                )}
+                                                <input
+                                                    type="file"
+                                                    accept="image/*"
+                                                    className="hidden"
+                                                    disabled={uploading}
+                                                    onChange={async (e) => {
+                                                        const file = e.target.files[0];
+                                                        if (file) {
+                                                            setUploading(true);
+                                                            try {
+                                                                const uploadData = new FormData();
+                                                                uploadData.append('images', file);
+                                                                const response = await api.uploadImages(uploadData);
+                                                                if (response.urls && response.urls.length > 0) {
+                                                                    setFormData(prev => ({ ...prev, image: response.urls[0] }));
+                                                                }
+                                                            } catch (error) {
+                                                                console.error('Image upload failed:', error);
+                                                                alert('Failed to upload image. Please try again.');
+                                                            } finally {
+                                                                setUploading(false);
+                                                            }
+                                                        }
+                                                    }}
+                                                />
+                                            </label>
                                         </div>
                                         <div className="space-y-1.5">
                                             <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Description</label>

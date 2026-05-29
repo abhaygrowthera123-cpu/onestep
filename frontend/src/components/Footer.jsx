@@ -28,7 +28,7 @@ export const Footer = () => {
           {/* Brand */}
           <div className="space-y-8">
             <Link to="/" className="flex items-center space-x-3 group">
-              <img src="/logo.svg" alt="Onestep-Hub" className="w-14 h-14 sm:w-16 sm:h-16 object-contain group-hover:scale-110 transition-transform brightness-0 invert" />
+              <img src="/logo.png" alt="Onestep-Hub" className="w-14 h-14 sm:w-16 sm:h-16 object-contain group-hover:scale-110 transition-transform brightness-0 invert" />
               <span className="text-2xl sm:text-3xl font-black tracking-tighter text-white">
                 Onestep<span className="text-blue-500">-Hub</span>
               </span>

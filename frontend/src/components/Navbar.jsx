@@ -48,7 +48,7 @@ export const Navbar = () => {
         <div className="flex justify-between items-center">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-3 group">
-            <img src="/logo.svg" alt="Onestep-Hub" className="w-14 h-14 sm:w-16 sm:h-16 object-contain group-hover:scale-110 transition-transform" />
+            <img src="/logo.png" alt="Onestep-Hub" className="w-14 h-14 sm:w-16 sm:h-16 object-contain group-hover:scale-110 transition-transform" />
             <span className="text-2xl sm:text-3xl font-black tracking-tighter text-slate-900 flex items-center group-hover:scale-105 transition-transform">
               Onestep<span className="text-blue-600">-Hub</span>
             </span>

@@ -1,2 +1,2 @@
-/** Central logo path — matches frontend/public/logo.svg */
-export const LOGO_SRC = '/logo.svg';
+/** Central logo path — matches frontend/public/logo.png */
+export const LOGO_SRC = '/logo.png';

@@ -241,7 +241,7 @@ export const Contact = () => {
             <div className="relative">
               <div className="absolute -inset-4 bg-brand-500/20 rounded-3xl blur-2xl animate-pulse" />
               <img
-                src="/logo.svg"
+                src="/logo.png"
                 alt="Onestep-Hub"
                 className="relative w-20 h-20 sm:w-24 sm:h-24 object-contain rounded-2xl shadow-2xl shadow-brand-500/30 bg-white/10 backdrop-blur-xl border border-white/10 p-3"
               />

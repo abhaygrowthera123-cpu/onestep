@@ -30,7 +30,7 @@ export const OrderSuccess = () => {
         {/* Brand Logo */}
         <div className="flex justify-center mb-8">
           <Link to="/">
-            <img src="/logo.svg" alt="Logo" className="h-10 w-auto" />
+            <img src="/logo.png" alt="Logo" className="h-10 w-auto" />
           </Link>
         </div>
 

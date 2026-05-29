@@ -36,7 +36,7 @@ export const Splash = ({ onComplete }) => {
                             transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
                             className="w-24 h-24 bg-white rounded-[2.5rem] flex items-center justify-center shadow-2xl shadow-blue-500/20 mb-8"
                         >
-                            <img src="/logo.svg" alt="Onestep-Hub" className="w-16 h-16 object-contain" />
+                            <img src="/logo.png" alt="Onestep-Hub" className="w-16 h-16 object-contain" />
                         </motion.div>
 
                         <div className="overflow-hidden">

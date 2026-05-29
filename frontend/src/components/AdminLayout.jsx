@@ -27,7 +27,7 @@ export const AdminLayout = ({ children }) => {
       <aside className="hidden lg:flex flex-col w-56 bg-white border-r border-gray-100 sticky top-0 h-screen overflow-y-auto custom-scrollbar flex-shrink-0">
         <div className="p-6">
           <Link to="/" className="flex items-center space-x-3 group">
-            <img src="/logo.svg" alt="Onestep-Hub" className="w-10 h-8 sm:w-12 sm:h-10 object-contain group-hover:scale-110 transition-transform" />
+            <img src="/logo.png" alt="Onestep-Hub" className="w-10 h-8 sm:w-12 sm:h-10 object-contain group-hover:scale-110 transition-transform" />
             <div className="flex flex-col">
               <span className="text-sm font-black text-slate-900 leading-none">Onestep<span className="text-blue-600">-Hub</span></span>
               <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-0.5">Admin Panel</span>
@@ -72,7 +72,7 @@ export const AdminLayout = ({ children }) => {
             <motion.aside initial={{ x: -300 }} animate={{ x: 0 }} exit={{ x: -300 }} className="fixed inset-y-0 left-0 w-56 bg-white z-[55] lg:hidden flex flex-col">
               <div className="p-8 pt-20">
                 <Link to="/" className="flex items-center space-x-3">
-                  <img src="/logo.svg" alt="Onestep-Hub" className="w-10 h-10 rounded-xl object-contain shadow-lg shadow-blue-200" />
+                  <img src="/logo.png" alt="Onestep-Hub" className="w-10 h-10 rounded-xl object-contain shadow-lg shadow-blue-200" />
                   <div className="flex flex-col">
                     <span className="text-base font-black text-gray-900 leading-none">Onestep<span className="text-blue-600">-Hub</span></span>
                     <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest mt-0.5">Admin Panel</span>

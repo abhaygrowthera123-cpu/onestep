@@ -44,6 +44,7 @@ export const productQuerySchema = Joi.object({
   maxPrice: Joi.number().min(0),
   rating: Joi.number().min(0).max(5),
   sort: Joi.string().valid('price-low', 'price-high', 'rating', 'newest'),
+  brand: Joi.string().trim().max(100),
   tag: Joi.string().trim().max(50),
   sellerId: Joi.string().trim(),
   page: Joi.number().integer().min(1).default(1),

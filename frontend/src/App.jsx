@@ -5,6 +5,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 import { WishlistProvider } from './context/WishlistContext';
 import { LanguageProvider } from './context/LanguageContext';
+import { ToastProvider } from './context/ToastContext';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
 import { MobileNav } from './components/MobileNav';
@@ -26,6 +27,7 @@ const FAQ = lazy(() => import('./pages/FAQ').then(m => ({ default: m.FAQ })));
 const Checkout = lazy(() => import('./pages/Checkout').then(m => ({ default: m.Checkout })));
 const Profile = lazy(() => import('./pages/Profile').then(m => ({ default: m.Profile })));
 const Orders = lazy(() => import('./pages/Orders').then(m => ({ default: m.Orders })));
+const OrderDetail = lazy(() => import('./pages/OrderDetail').then(m => ({ default: m.OrderDetail })));
 const Terms = lazy(() => import('./pages/Terms').then(m => ({ default: m.Terms })));
 const Privacy = lazy(() => import('./pages/Privacy').then(m => ({ default: m.Privacy })));
 const Refund = lazy(() => import('./pages/Refund').then(m => ({ default: m.Refund })));
@@ -46,6 +48,7 @@ const UserDetail = lazy(() => import('./pages/admin/UserDetail').then(m => ({ de
 const AdminCategories = lazy(() => import('./pages/admin/Categories').then(m => ({ default: m.AdminCategories })));
 const AdminSettings = lazy(() => import('./pages/admin/Settings').then(m => ({ default: m.AdminSettings })));
 const AdminCoupons = lazy(() => import('./pages/admin/Coupons').then(m => ({ default: m.AdminCoupons })));
+const AdminMessages = lazy(() => import('./pages/admin/Messages').then(m => ({ default: m.AdminMessages })));
 
 // Seller Pages
 const SellerLayout = lazy(() => import('./components/SellerLayout').then(m => ({ default: m.SellerLayout })));
@@ -112,6 +115,7 @@ function AppContent() {
                             <Route path="/users/:uid" element={<UserDetail />}/>
                             <Route path="/categories" element={<AdminCategories />}/>
                             <Route path="/coupons" element={<AdminCoupons />}/>
+                            <Route path="/messages" element={<AdminMessages />}/>
                             <Route path="/settings" element={<AdminSettings />}/>
                         </Routes>
                     </AdminLayout>
@@ -147,6 +151,7 @@ function AppContent() {
                         <Route path="/checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>}/>
                         <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>}/>
                         <Route path="/orders" element={<ProtectedRoute><Orders /></ProtectedRoute>}/>
+                        <Route path="/orders/:id" element={<ProtectedRoute><OrderDetail /></ProtectedRoute>}/>
                         <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>}/>
                         <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>}/>
                         <Route path="/wallet" element={<ProtectedRoute><Wallet /></ProtectedRoute>}/>
@@ -171,6 +176,7 @@ export default function App() {
     return (
         <HelmetProvider>
             <LanguageProvider>
+                <ToastProvider>
                 <AuthProvider>
                     <CartProvider>
                         <WishlistProvider>
@@ -181,6 +187,7 @@ export default function App() {
                         </WishlistProvider>
                     </CartProvider>
                 </AuthProvider>
+                </ToastProvider>
             </LanguageProvider>
         </HelmetProvider>
     );

@@ -8,12 +8,14 @@ import {
   createOrderSchema,
   updateOrderStatusSchema,
   requestReturnSchema,
+  cancelOrderSchema,
 } from '../validators/orderValidator.js';
 import { parsePagination, paginatedResponse } from '../utils/pagination.js';
 import { ORDER_STATUS_TRANSITIONS } from '../utils/constants.js';
 import { normalizeOrderAddress } from '../utils/orderAddress.js';
 import { renderInvoiceHtml } from '../utils/invoiceHtml.js';
 import logger from '../utils/logger.js';
+import { createNotification } from '../services/notificationService.js';
 
 const router = Router();
 
@@ -44,6 +46,78 @@ router.get('/', authenticate, async (req, res, next) => {
     res.json(paginatedResponse(rows, count, { page, limit }));
   } catch (error) {
     next(error);
+  }
+});
+
+// GET /api/v1/orders/seller/stats — seller dashboard metrics
+router.get('/seller/stats', authenticate, requireSeller, async (req, res, next) => {
+  try {
+    const sellerUid = req.user.uid;
+    const myProducts = await Product.findAll({ where: { sellerId: sellerUid } });
+    const productIds = myProducts.map((p) => p.id);
+    const lowStockCount = myProducts.filter((p) => p.stock <= 5).length;
+
+    if (!productIds.length) {
+      return res.json({
+        revenue: 0,
+        orderCount: 0,
+        productCount: 0,
+        lowStockCount: 0,
+        revenueByDay: [],
+        recentOrders: [],
+      });
+    }
+
+    const where = {
+      [Op.or]: productIds.map((id) => ({ items: { [Op.like]: `%"productId":"${id}"%` } })),
+      status: { [Op.notIn]: ['cancelled', 'refunded'] },
+    };
+    const orders = await Order.findAll({
+      where,
+      order: [['createdAt', 'DESC']],
+      limit: 100,
+    });
+
+    let revenue = 0;
+    const byDay = {};
+    const last7 = new Date();
+    last7.setDate(last7.getDate() - 6);
+    last7.setHours(0, 0, 0, 0);
+
+    for (const o of orders) {
+      const amt = Number(o.totalAmount || 0);
+      revenue += amt;
+      const d = new Date(o.createdAt).toISOString().slice(0, 10);
+      byDay[d] = (byDay[d] || 0) + amt;
+    }
+
+    const revenueByDay = [];
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(last7);
+      d.setDate(last7.getDate() + i);
+      const key = d.toISOString().slice(0, 10);
+      revenueByDay.push({
+        date: key.slice(5),
+        revenue: Math.round(byDay[key] || 0),
+      });
+    }
+
+    res.json({
+      revenue: Math.round(revenue),
+      orderCount: orders.length,
+      productCount: myProducts.length,
+      lowStockCount,
+      revenueByDay,
+      recentOrders: orders.slice(0, 5).map((o) => ({
+        id: o.id,
+        orderNumber: o.orderNumber,
+        totalAmount: o.totalAmount,
+        status: o.status,
+        createdAt: o.createdAt,
+      })),
+    });
+  } catch (e) {
+    next(e);
   }
 });
 
@@ -105,6 +179,62 @@ router.get('/:id/invoice', authenticate, async (req, res, next) => {
     next(e);
   }
 });
+
+// POST /api/v1/orders/:id/cancel — buyer cancels own order
+router.post(
+  '/:id/cancel',
+  authenticate,
+  validate(cancelOrderSchema),
+  async (req, res, next) => {
+    try {
+      const order = await Order.findByPk(req.params.id);
+      if (!order) return res.status(404).json({ error: 'Order not found' });
+      if (order.userId !== req.user.uid) {
+        return res.status(403).json({ error: 'Access denied' });
+      }
+
+      const allowed = ORDER_STATUS_TRANSITIONS[order.status] || [];
+      if (!allowed.includes('cancelled')) {
+        return res.status(400).json({
+          error: `Cannot cancel order in "${order.status}" status`,
+        });
+      }
+
+      const transaction = await sequelize.transaction();
+      try {
+        for (const item of order.items) {
+          await Product.increment('stock', {
+            by: item.quantity,
+            where: { id: item.productId },
+            transaction,
+          });
+        }
+        await order.update(
+          {
+            status: 'cancelled',
+            cancelReason: req.body.reason || 'Cancelled by customer',
+          },
+          { transaction },
+        );
+        await transaction.commit();
+      } catch (txError) {
+        await transaction.rollback();
+        throw txError;
+      }
+
+      createNotification(order.userId, {
+        type: 'order',
+        title: 'Order cancelled',
+        body: `Your order ${order.orderNumber} was cancelled.`,
+        data: { orderId: order.id, orderNumber: order.orderNumber },
+      });
+
+      res.json({ success: true, order });
+    } catch (e) {
+      next(e);
+    }
+  },
+);
 
 // GET /api/v1/orders/:id — auth required
 router.get('/:id', authenticate, async (req, res, next) => {
@@ -278,6 +408,26 @@ router.patch(
         to: status,
         adminId: req.user.uid,
       });
+
+      const statusMessages = {
+        confirmed: 'Your order has been confirmed.',
+        packed: 'Your order is being packed.',
+        shipped: 'Your order has been shipped.',
+        out_for_delivery: 'Your order is out for delivery.',
+        delivered: 'Your order has been delivered.',
+        cancelled: 'Your order was cancelled.',
+        return_requested: 'Return request received.',
+        returned: 'Your return has been processed.',
+        refunded: 'Your refund has been issued.',
+      };
+      if (statusMessages[status]) {
+        createNotification(order.userId, {
+          type: status === 'refunded' ? 'payment' : 'order',
+          title: `Order ${status.replace(/_/g, ' ')}`,
+          body: statusMessages[status],
+          data: { orderId: order.id, orderNumber: order.orderNumber, status },
+        });
+      }
 
       res.json(order);
     } catch (error) {

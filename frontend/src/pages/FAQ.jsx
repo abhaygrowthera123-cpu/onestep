@@ -3,6 +3,7 @@ import { SEO } from '../components/SEO';
 import { ChevronDown, HelpCircle, Truck, RotateCcw, ShieldCheck } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../lib/utils';
+import { resolveImageUrl } from '../lib/imageUrl';
 const faqs = [
     {
         category: 'Shipping & Delivery',
@@ -54,7 +55,7 @@ export const FAQ = () => {
       
       <div className="relative rounded-[3rem] overflow-hidden mb-16 h-[300px] group">
         <img 
-          src="/uploads/images/faq-hero.png" 
+          src={resolveImageUrl("/uploads/images/faq-hero.png")} 
           alt="FAQ Support" 
           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
           onError={(e) => e.target.style.display = 'none'}

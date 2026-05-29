@@ -649,7 +649,7 @@ export const Checkout = () => {
           >
             <ArrowLeft className="h-5 w-5" />
           </button>
-          <img src="/images/logo.png" alt="OneStep Hub" className="h-6 w-auto" />
+          <img src="/logo.svg" alt="OneStep Hub" className="h-6 w-auto" />
           <h1 className="text-base font-black text-gray-900">Checkout</h1>
         </div>
 

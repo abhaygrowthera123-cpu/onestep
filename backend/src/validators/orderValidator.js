@@ -52,6 +52,10 @@ export const requestReturnSchema = Joi.object({
   reason: Joi.string().min(5).max(2000).required(),
 });
 
+export const cancelOrderSchema = Joi.object({
+  reason: Joi.string().max(500).allow('', null),
+});
+
 export const updateOrderStatusSchema = Joi.object({
   status: Joi.string().valid(
     'pending', 'confirmed', 'packed', 'shipped',

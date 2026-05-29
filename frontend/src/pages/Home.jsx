@@ -197,7 +197,7 @@ export const Home = () => {
                 </Link>
               </div>
               <div className="w-36 md:w-52 shrink-0">
-                <img src={banner.image} alt="" className="w-full h-full object-cover rounded-2xl shadow-xl" />
+                <img src={resolveImageUrl(banner.image)} alt="" className="w-full h-full object-cover rounded-2xl shadow-xl" />
               </div>
             </motion.div>
           </AnimatePresence>

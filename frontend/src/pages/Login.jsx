@@ -244,7 +244,7 @@ export const Login = () => {
                 {/* Brand Logo */}
                 <div className="text-center mb-6">
                     <Link to="/" className="inline-flex items-center space-x-2 group">
-                        <img src="/images/logo.png" alt="Logo" className="w-9 h-9 object-contain group-hover:scale-105 transition-transform" />
+                        <img src="/logo.svg" alt="Logo" className="w-9 h-9 object-contain group-hover:scale-105 transition-transform" />
                         <span className="text-lg font-black tracking-tight text-slate-900">
                             Onestep<span className="text-blue-600">-Hub</span>
                         </span>

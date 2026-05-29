@@ -16,6 +16,7 @@ import { motion } from 'motion/react';
 import { cn } from '../lib/utils';
 import { SEO } from '../components/SEO';
 import { resolveImageUrl } from '../lib/imageUrl';
+import { useToast } from '../context/ToastContext';
 
 const FILTER_TABS = [
     { key: 'all', label: 'All' },
@@ -41,6 +42,7 @@ export const Orders = () => {
     const [returnReason, setReturnReason] = useState('');
     const [busy, setBusy] = useState(false);
     const navigate = useNavigate();
+    const { showToast } = useToast();
 
     useEffect(() => {
         const fetchOrders = async () => {
@@ -59,6 +61,21 @@ export const Orders = () => {
 
     const filteredOrders = orders.filter((o) => orderMatchesFilter(o, filter));
 
+    const handleCancel = async (orderId) => {
+        if (!window.confirm('Cancel this order?')) return;
+        setBusy(true);
+        try {
+            await api.cancelOrder(orderId, 'Cancelled by customer');
+            const res = await api.getOrders({ limit: 50 });
+            setOrders(res.data || []);
+            showToast('Order cancelled', 'success');
+        } catch (e) {
+            showToast(e.response?.data?.error || 'Cancel failed', 'error');
+        } finally {
+            setBusy(false);
+        }
+    };
+
     const submitReturn = async () => {
         if (!returnId || returnReason.trim().length < 5) return;
         setBusy(true);
@@ -68,8 +85,10 @@ export const Orders = () => {
             setOrders(res.data || []);
             setReturnId(null);
             setReturnReason('');
+            showToast('Return request submitted', 'success');
         } catch (e) {
             console.error(e);
+            showToast(e.response?.data?.error || 'Return request failed', 'error');
         } finally {
             setBusy(false);
         }
@@ -168,7 +187,8 @@ export const Orders = () => {
                                 key={order.id}
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                className="bg-white rounded-[2rem] p-6 shadow-sm border border-gray-100 space-y-4 relative overflow-hidden group"
+                                onClick={() => navigate(`/orders/${order.id}`)}
+                                className="bg-white rounded-[2rem] p-6 shadow-sm border border-gray-100 space-y-4 relative overflow-hidden group cursor-pointer"
                             >
                                 {/* Top: ID and Status */}
                                 <div className="flex items-center justify-between pb-4 border-b border-gray-50">
@@ -227,12 +247,23 @@ export const Orders = () => {
                                        <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center text-gray-400">
                                           <Truck className="h-4 w-4" />
                                        </div>
-                                       <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest max-w-[140px] truncate">{order.trackingId ? `Tracking: ${order.trackingId}` : 'Processing'}</span>
+                                       <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest max-w-[140px] truncate">
+                                         {order.trackingUrl ? (
+                                           <a href={order.trackingUrl} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} className="text-blue-600 underline">
+                                             {order.trackingId || 'Track'}
+                                           </a>
+                                         ) : order.trackingId ? `Tracking: ${order.trackingId}` : order.courierName || 'Processing'}
+                                       </span>
                                     </div>
-                                    <div className="flex flex-wrap gap-2">
+                                    <div className="flex flex-wrap gap-2" onClick={(e) => e.stopPropagation()}>
                                         <button type="button" onClick={() => openInvoice(order.id)} className="py-2 px-4 rounded-xl border border-gray-200 text-[10px] font-black uppercase tracking-widest hover:bg-gray-50">
                                             Invoice
                                         </button>
+                                        {['pending', 'confirmed', 'packed'].includes(order.status) && (
+                                            <button type="button" disabled={busy} onClick={() => handleCancel(order.id)} className="py-2 px-4 rounded-xl border border-red-200 text-[10px] font-black uppercase tracking-widest text-red-700 hover:bg-red-50">
+                                                Cancel
+                                            </button>
+                                        )}
                                         {order.status === 'delivered' && (
                                             <button type="button" onClick={() => setReturnId(order.id)} className="py-2 px-4 rounded-xl border border-amber-200 text-[10px] font-black uppercase tracking-widest text-amber-800 hover:bg-amber-50">
                                                 Return

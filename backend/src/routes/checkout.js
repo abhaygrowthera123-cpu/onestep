@@ -9,6 +9,8 @@ import { normalizeOrderAddress } from '../utils/orderAddress.js';
 import { applyCoupon, incrementCouponUsage } from '../services/couponService.js';
 import { sendOrderConfirmationEmail } from '../services/emailService.js';
 import logger from '../utils/logger.js';
+import { isRazorpayMockEnabled } from '../utils/razorpayMock.js';
+import { createNotification } from '../services/notificationService.js';
 
 const router = Router();
 
@@ -184,7 +186,7 @@ router.post('/', authenticate, validate(checkoutSchema), async (req, res, next) 
       }
 
       let razorpayOrder;
-      const isMockEnabled = process.env.RAZORPAY_ENABLE_MOCK === 'true';
+      const isMockEnabled = isRazorpayMockEnabled();
 
       if (isMockEnabled) {
         razorpayOrder = { id: `order_mock_${Math.random().toString(36).substring(7)}` };
@@ -282,6 +284,13 @@ router.post('/', authenticate, validate(checkoutSchema), async (req, res, next) 
       paymentStatus: 'pending',
     }).catch(() => {});
 
+    createNotification(req.user.uid, {
+      type: 'order',
+      title: 'Order placed',
+      body: `Your order ${order.orderNumber} has been placed successfully.`,
+      data: { orderId: order.id, orderNumber: order.orderNumber },
+    });
+
     return res.status(201).json({ order, razorpay: null });
   } catch (error) {
     await transaction.rollback();
@@ -295,11 +304,15 @@ router.post('/', authenticate, validate(checkoutSchema), async (req, res, next) 
 router.post('/verify', authenticate, validate(verifyPaymentSchema), async (req, res, next) => {
   try {
     const secret = process.env.RAZORPAY_KEY_SECRET;
-    const isMockEnabled = process.env.RAZORPAY_ENABLE_MOCK === 'true';
+    const isMockEnabled = isRazorpayMockEnabled();
 
     if (!isMockEnabled && !secret) return res.status(503).json({ error: 'Payments not configured' });
 
     const { orderId, razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+
+    if (razorpay_signature === 'mock_signature' && !isMockEnabled) {
+      return res.status(400).json({ error: 'Mock payments are not allowed in production' });
+    }
 
     if (isMockEnabled && razorpay_signature === 'mock_signature') {
       logger.info(`MOCK PAYMENT VERIFIED: Signature verification skipped for order ${orderId}`);
@@ -350,6 +363,13 @@ router.post('/verify', authenticate, validate(verifyPaymentSchema), async (req, 
         paymentStatus: 'paid',
       }).catch(() => {});
     }
+
+    createNotification(req.user.uid, {
+      type: 'payment',
+      title: 'Payment received',
+      body: `Payment for order ${order.orderNumber} was successful.`,
+      data: { orderId: order.id, orderNumber: order.orderNumber },
+    });
 
     res.json({ success: true, order });
   } catch (e) {

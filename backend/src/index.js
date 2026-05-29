@@ -31,6 +31,7 @@ import couponRoutes from './routes/coupons.js';
 import settingsRoutes from './routes/settings.js';
 import webhookRoutes from './routes/webhooks.js';
 import walletRoutes from './routes/wallet.js';
+import notificationRoutes from './routes/notifications.js';
 import errorHandler from './middleware/errorHandler.js';
 import { generalLimiter, authLimiter, uploadLimiter } from './middleware/rateLimiter.js';
 import logger from './utils/logger.js';
@@ -114,6 +115,7 @@ app.use('/api/v1/checkout', checkoutRoutes);
 app.use('/api/v1/coupons', couponRoutes);
 app.use('/api/v1/settings', settingsRoutes);
 app.use('/api/v1/wallet', walletRoutes);
+app.use('/api/v1/notifications', notificationRoutes);
 
 // ── Legacy Routes (backward compat — same handlers) ────────────
 app.use('/api/products', productRoutes);
@@ -131,6 +133,7 @@ app.use('/api/checkout', checkoutRoutes);
 app.use('/api/coupons', couponRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/wallet', walletRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // ── Static Files ───────────────────────────────────────────────
 app.use('/uploads', express.static(path.resolve(__dirname, '../uploads')));
@@ -200,13 +203,30 @@ async function start() {
     logger.warn(`Seeding skipped: ${error.message}`);
   }
 
-  // 4. Auto-create admin account (best-effort — never crash the server)
+  // 4. Production: require admin env vars
+  if (isProduction) {
+    const missing = [];
+    if (!process.env.ADMIN_EMAIL) missing.push('ADMIN_EMAIL');
+    if (!process.env.ADMIN_PASSWORD) missing.push('ADMIN_PASSWORD');
+    if (!process.env.ADMIN_JWT_SECRET && !process.env.JWT_SECRET) missing.push('ADMIN_JWT_SECRET');
+    if (missing.length) {
+      logger.error(`Missing required production env: ${missing.join(', ')}`);
+    }
+  }
+
+  // 5. Auto-create admin account (best-effort — never crash the server)
   try {
     const { User } = await import('./models/index.js');
     const adminExists = await User.findOne({ where: { role: 'admin' } });
     if (!adminExists) {
-      const adminEmail = process.env.ADMIN_EMAIL || 'admin@onestep.com';
-      const adminPassword = process.env.ADMIN_PASSWORD || 'Admin@123';
+      const adminEmail = process.env.ADMIN_EMAIL || (isProduction ? null : 'admin@onestep.com');
+      const adminPassword = process.env.ADMIN_PASSWORD || (isProduction ? null : 'Admin@123');
+
+      if (!adminEmail || !adminPassword) {
+        if (isProduction) {
+          logger.warn('No admin in DB and ADMIN_EMAIL/ADMIN_PASSWORD not set — skip auto-setup');
+        }
+      } else {
 
       // Try Firebase admin SDK — this requires service account credentials
       try {
@@ -250,6 +270,7 @@ async function start() {
           logger.warn(`Local admin creation also failed: ${localErr.message}`);
         }
       }
+      }
     } else {
       logger.info(`Admin account exists: ${adminExists.email}`);
     }
@@ -289,7 +310,7 @@ async function start() {
     logger.warn(`Account auto-setup skipped: ${err.message}`);
   }
 
-  // 5. Start listening — this ALWAYS runs regardless of above errors
+  // 6. Start listening — this ALWAYS runs regardless of above errors
   app.listen(PORT, '0.0.0.0', () => {
     logger.info(`🚀 Backend running (v1.0.6-stable) on http://localhost:${PORT}`);
     logger.info(`   Environment: ${process.env.NODE_ENV || 'production'}`);

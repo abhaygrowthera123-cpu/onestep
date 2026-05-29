@@ -23,7 +23,7 @@ services:
           name: onestep-db
           property: connectionString
       - key: SYNC_ALTER
-        value: "true"
+        value: "false"
       - key: VITE_API_URL
         value: ""
       - key: ADMIN_EMAIL
@@ -41,6 +41,6 @@ services:
       - key: RAZORPAY_WEBHOOK_SECRET
         sync: false
       - key: RAZORPAY_ENABLE_MOCK
-        value: "true"
+        value: "false"
       - key: STORE_DISPLAY_NAME
         value: OneStep Hub

@@ -3,9 +3,11 @@ import { ChevronLeft, Ticket, Copy, Check, Clock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import { motion } from 'motion/react';
+import { useToast } from '../context/ToastContext';
 
 export const Coupons = () => {
     const navigate = useNavigate();
+    const { showToast } = useToast();
     const [coupons, setCoupons] = useState([]);
     const [loading, setLoading] = useState(true);
     const [copied, setCopied] = useState(null);
@@ -13,16 +15,17 @@ export const Coupons = () => {
     useEffect(() => {
         const fetchCoupons = async () => {
             try {
-                const res = await api.getCoupons();
+                const res = await api.getPublicCoupons();
                 setCoupons(res || []);
             } catch (error) {
                 console.error('Error fetching coupons:', error);
+                showToast('Could not load coupons. Please try again.', 'error');
             } finally {
                 setLoading(false);
             }
         };
         fetchCoupons();
-    }, []);
+    }, [showToast]);
 
     const copyToClipboard = (code) => {
         navigator.clipboard.writeText(code);

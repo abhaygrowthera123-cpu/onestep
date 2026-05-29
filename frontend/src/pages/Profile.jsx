@@ -35,6 +35,7 @@ export const Profile = () => {
     const { lang, setLang, t } = useLanguage();
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [unreadNotifications, setUnreadNotifications] = useState(0);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -52,11 +53,24 @@ export const Profile = () => {
         fetchOrders();
     }, [user]);
 
+    useEffect(() => {
+        const fetchUnread = async () => {
+            if (!user) return;
+            try {
+                const res = await api.getNotificationUnreadCount();
+                setUnreadNotifications(res.count ?? 0);
+            } catch {
+                setUnreadNotifications(0);
+            }
+        };
+        fetchUnread();
+    }, [user]);
+
     const quickActions = [
         { label: t('catalogs'), icon: BookMarked, color: 'bg-amber-100', text: 'text-amber-900', path: '/search' },
         { label: t('orders'), icon: ShoppingBag, color: 'bg-amber-100', text: 'text-amber-900', path: '/orders' },
         { label: t('favourites'), icon: Heart, color: 'bg-amber-100', text: 'text-amber-900', path: '/wishlist', badge: 'NEW' },
-        { label: t('notification'), icon: Bell, color: 'bg-amber-100', text: 'text-amber-900', path: '/notifications', badge: '2' },
+        { label: t('notification'), icon: Bell, color: 'bg-amber-100', text: 'text-amber-900', path: '/notifications', badge: unreadNotifications > 0 ? String(unreadNotifications) : null },
         { label: t('buyAgain'), icon: RotateCcw, color: 'bg-amber-100', text: 'text-amber-900', path: '/orders' },
         { label: t('language'), icon: Globe, color: 'bg-amber-100', text: 'text-amber-900', action: () => setLang(lang === 'en' ? 'hi' : 'en') },
         { label: t('return'), icon: RotateCcw, color: 'bg-amber-100', text: 'text-amber-900', path: '/orders' },

@@ -14,6 +14,7 @@ export const CategoryProducts = () => {
     const [category, setCategory] = useState(null);
     const [loading, setLoading] = useState(true);
     const [viewMode, setViewMode] = useState('grid');
+    const [sort, setSort] = useState('newest');
     const { addToCart } = useCart();
     const { toggleWishlist, isInWishlist } = useWishlist();
     useEffect(() => {
@@ -26,7 +27,7 @@ export const CategoryProducts = () => {
                 const categoryData = await api.getCategory(id);
                 setCategory(categoryData);
                 // Then fetch products using the category name (not UUID)
-                const productsRes = await api.getProducts({ category: categoryData.name });
+                const productsRes = await api.getProducts({ category: categoryData.name, sort, limit: 100 });
                 setProducts(productsRes.data || []);
             }
             catch (error) {
@@ -37,7 +38,7 @@ export const CategoryProducts = () => {
             }
         };
         fetchData();
-    }, [id]);
+    }, [id, sort]);
     if (loading) {
         return (<div className="min-h-screen flex items-center justify-center">
         <div className="w-12 h-12 border-4 border-brand-200 border-t-brand-600 rounded-full animate-spin"/>
@@ -75,10 +76,16 @@ export const CategoryProducts = () => {
               <List className="h-5 w-5"/>
             </button>
           </div>
-          <button className="flex items-center space-x-3 bg-white border border-slate-200 px-6 py-3.5 rounded-2xl font-black text-xs uppercase tracking-widest text-slate-600 hover:border-brand-600 hover:text-brand-600 transition-all shadow-sm">
-            <SlidersHorizontal className="h-4 w-4"/>
-            <span>Filter</span>
-          </button>
+          <select
+            value={sort}
+            onChange={(e) => setSort(e.target.value)}
+            className="bg-white border border-slate-200 px-4 py-3.5 rounded-2xl font-black text-xs uppercase tracking-widest text-slate-600"
+          >
+            <option value="newest">Newest</option>
+            <option value="price-low">Price: Low to High</option>
+            <option value="price-high">Price: High to Low</option>
+            <option value="rating">Top Rated</option>
+          </select>
         </div>
       </div>
 

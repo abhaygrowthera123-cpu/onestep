@@ -18,6 +18,7 @@ export const Search = () => {
     const maxPrice = parseInt(searchParams.get('maxPrice')) || 50000;
     const rating = parseFloat(searchParams.get('rating')) || 0;
     const sort = searchParams.get('sort') || 'newest';
+    const brand = searchParams.get('brand') || '';
     
     const [products, setProducts] = useState([]);
     const [allCategories, setAllCategories] = useState([]);
@@ -47,6 +48,7 @@ export const Search = () => {
             if (minPrice > 0) params.minPrice = minPrice;
             if (maxPrice < 50000) params.maxPrice = maxPrice;
             if (rating > 0) params.rating = rating;
+            if (brand) params.brand = brand;
             
             const res = await api.getProducts(params);
                 setProducts(res.data || []);
@@ -56,7 +58,7 @@ export const Search = () => {
             } finally { setLoading(false); }
         };
         fetchProducts();
-    }, [query, category, minPrice, maxPrice, rating, sort]);
+    }, [query, category, minPrice, maxPrice, rating, sort, brand]);
 
     const updateFilters = (newParams) => {
         const params = new URLSearchParams(searchParams);

@@ -41,7 +41,7 @@ router.post('/admin-login', async (req, res) => {
   const adminPassword = process.env.ADMIN_PASSWORD;
   const jwtSecret = adminJwtSecret();
 
-  if ((!adminEmail || !adminPassword || !jwtSecret) && isProduction) {
+  if (isProduction && (!adminEmail || !adminPassword || !jwtSecret)) {
     return res.status(503).json({ error: 'Admin authentication is not configured' });
   }
 

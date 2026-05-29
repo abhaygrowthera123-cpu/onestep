@@ -63,6 +63,26 @@ export const Wallet = () => {
       }
 
       const rz = result.razorpay;
+
+      if (rz.isMock) {
+        await new Promise((r) => setTimeout(r, 800));
+        const verifyResult = await api.verifyWalletTopup({
+          razorpay_order_id: rz.orderId,
+          razorpay_payment_id: 'pay_mock_wallet_' + Date.now(),
+          razorpay_signature: 'mock_signature',
+          amount: num,
+        });
+        setSuccess(`₹${num} added successfully! New balance: ₹${Number(verifyResult.walletBalance).toFixed(2)}`);
+        setAmount('');
+        setShowAddMoney(false);
+        try {
+          const me = await api.getMe();
+          updateProfile(me);
+        } catch { /* */ }
+        setLoading(false);
+        return;
+      }
+
       const options = {
         key: rz.keyId,
         amount: rz.amount,

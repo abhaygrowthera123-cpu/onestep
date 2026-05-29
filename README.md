@@ -47,7 +47,7 @@ onestep-hub/
 │   │   ├── routes/         # products, orders, auth, users, …
 │   │   ├── middleware/     # auth, validation, rate limits, errors
 │   │   ├── validators/     # Joi schemas
-│   │   ├── services/       # e.g. stock
+│   │   ├── services/       # coupons, email, notifications
 │   │   └── utils/          # logger, pagination
 │   ├── data/               # SQLite file (when DB_DIALECT=sqlite)
 │   ├── uploads/            # User-uploaded images (served at /uploads)
@@ -189,7 +189,11 @@ Main groups:
 | `/api/v1/auth` | Admin login, verify |
 | `/api/v1/upload` | Image uploads |
 | `/api/v1/addresses` | Saved addresses |
-| `/api/v1/contact` | Contact form / newsletter |
+| `/api/v1/contact` | Contact form / newsletter (admin inbox: GET `/contact`) |
+| `/api/v1/coupons/public` | Active coupons for storefront |
+| `/api/v1/notifications` | In-app notifications |
+| `/api/v1/checkout` | Unified checkout + payment verify |
+| `/api/v1/wallet` | Wallet balance and top-up |
 | `/api/v1/reviews` | Product reviews |
 
 Health checks: `GET /api/health` and `GET /api/v1/health`.
@@ -204,6 +208,22 @@ Static uploads: `GET /uploads/...` on the backend origin (proxied as `/uploads` 
 - **MySQL:** Set `DB_DIALECT=mysql` and provide host, user, password, database name.
 
 On startup, Sequelize **syncs** models; optional seed runs if tables are empty (`backend/src/seed.js`). An **admin** Firebase user + DB row may be auto-created if no admin exists (see `backend/src/index.js`).
+
+Stock is decremented in **checkout** and restored on **order cancel** (`backend/src/routes/checkout.js`, `orders.js`). Run `node backend/audit_images.js` if seeded product images 404.
+
+### Production security checklist
+
+- Set `ADMIN_EMAIL`, `ADMIN_PASSWORD`, and `ADMIN_JWT_SECRET` (no defaults in production).
+- Set `RAZORPAY_ENABLE_MOCK=false` and configure real Razorpay keys + webhook secret.
+- Set `SETUP_SECRET` if you need the setup endpoint; otherwise it is blocked in production without the header.
+- Keep `SYNC_ALTER=false` on deploy; run a one-time `SYNC_ALTER=true` only when migrating schema.
+- Do not enable `ENABLE_DEBUG_AUTH_BYPASS` in production.
+
+### Tests
+
+```bash
+cd backend && npm install && npm test
+```
 
 ---
 

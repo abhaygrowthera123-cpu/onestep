@@ -28,8 +28,13 @@ if (process.env.DATABASE_URL) {
     dialect: 'postgres',
     logging: false,
     dialectOptions: {
-      ssl: process.env.NODE_ENV === 'production' ? { require: true, rejectUnauthorized: false } : false
-    }
+      ssl: process.env.NODE_ENV === 'production'
+        ? {
+            require: true,
+            rejectUnauthorized: process.env.DATABASE_SSL_REJECT_UNAUTHORIZED === 'true',
+          }
+        : false,
+    },
   });
 } else if (DB_DIALECT === 'mysql') {
   sequelize = new Sequelize(
@@ -223,6 +228,17 @@ const SiteSetting = sequelize.define('SiteSetting', {
   value: { type: DataTypes.TEXT, allowNull: false },
 });
 
+// ── Notification Model ─────────────────────────────────────────
+const Notification = sequelize.define('Notification', {
+  id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+  userId: { type: DataTypes.STRING, allowNull: false },
+  type: { type: DataTypes.STRING, allowNull: false, defaultValue: 'system' },
+  title: { type: DataTypes.STRING, allowNull: false },
+  body: { type: DataTypes.TEXT, defaultValue: '' },
+  data: { type: DataTypes.JSON },
+  isRead: { type: DataTypes.BOOLEAN, defaultValue: false },
+});
+
 // ── Associations ───────────────────────────────────────────────
 User.hasMany(Order, { foreignKey: 'userId', sourceKey: 'uid' });
 Order.belongsTo(User, { foreignKey: 'userId', targetKey: 'uid' });
@@ -238,4 +254,7 @@ Review.belongsTo(User, { foreignKey: 'userId', targetKey: 'uid' });
 User.hasMany(Address, { foreignKey: 'userId', sourceKey: 'uid', as: 'addresses', onDelete: 'CASCADE' });
 Address.belongsTo(User, { foreignKey: 'userId', targetKey: 'uid' });
 
-export { sequelize, Product, ProductVariant, Category, Order, User, Review, Address, Contact, Newsletter, Coupon, SiteSetting };
+User.hasMany(Notification, { foreignKey: 'userId', sourceKey: 'uid', as: 'notifications', onDelete: 'CASCADE' });
+Notification.belongsTo(User, { foreignKey: 'userId', targetKey: 'uid' });
+
+export { sequelize, Product, ProductVariant, Category, Order, User, Review, Address, Contact, Newsletter, Coupon, SiteSetting, Notification };

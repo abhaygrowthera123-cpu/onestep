@@ -144,6 +144,10 @@ export const api = {
         const response = await apiClient.get('/orders/seller', { params });
         return response.data;
     },
+    getSellerStats: async () => {
+        const response = await apiClient.get('/orders/seller/stats');
+        return response.data;
+    },
     requestOrderReturn: async (orderId, reason) => {
         const response = await apiClient.patch(`/orders/${orderId}/request-return`, { reason });
         return response.data;
@@ -167,6 +171,10 @@ export const api = {
     },
     getCoupons: async () => {
         const response = await apiClient.get('/coupons');
+        return response.data;
+    },
+    getPublicCoupons: async () => {
+        const response = await apiClient.get('/coupons/public');
         return response.data;
     },
     createCoupon: async (data) => {
@@ -238,6 +246,22 @@ export const api = {
         const response = await apiClient.post('/contact/newsletter', { email });
         return response.data;
     },
+    getContactMessages: async (params) => {
+        const response = await apiClient.get('/contact', { params });
+        return response.data;
+    },
+    markContactRead: async (id) => {
+        const response = await apiClient.patch(`/contact/${id}/read`);
+        return response.data;
+    },
+    getNewsletterSubscribers: async (params) => {
+        const response = await apiClient.get('/contact/newsletter/list', { params });
+        return response.data;
+    },
+    cancelOrder: async (orderId, reason) => {
+        const response = await apiClient.post(`/orders/${orderId}/cancel`, { reason });
+        return response.data;
+    },
     // Reviews
     getReviews: async (productId, params) => {
         const response = await apiClient.get(`/products/${productId}/reviews`, { params });
@@ -266,5 +290,25 @@ export const api = {
     verifyWalletTopup: async (data) => {
         const response = await apiClient.post('/wallet/verify', data);
         return response.data;
+    },
+    // Notifications
+    getNotifications: async (params) => {
+        const response = await apiClient.get('/notifications', { params });
+        return response.data;
+    },
+    getNotificationUnreadCount: async () => {
+        const response = await apiClient.get('/notifications/unread-count');
+        return response.data;
+    },
+    markNotificationRead: async (id) => {
+        const response = await apiClient.patch(`/notifications/${id}/read`);
+        return response.data;
+    },
+    markAllNotificationsRead: async () => {
+        const response = await apiClient.patch('/notifications/read-all');
+        return response.data;
+    },
+    deleteNotification: async (id) => {
+        await apiClient.delete(`/notifications/${id}`);
     },
 };

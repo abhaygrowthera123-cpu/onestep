@@ -73,7 +73,7 @@ function generateSKU(productName, variant) {
 // GET /products — public, paginated, searchable, tag-filtered
 router.get('/', validate(productQuerySchema, 'query'), async (req, res, next) => {
   try {
-    const { category, isTrending, search, minPrice, maxPrice, rating, sort, tag, sellerId } = req.query;
+    const { category, isTrending, search, minPrice, maxPrice, rating, sort, tag, sellerId, brand } = req.query;
     const { page, limit, offset } = parsePagination(req.query);
     const where = { isActive: true };
 
@@ -83,6 +83,7 @@ router.get('/', validate(productQuerySchema, 'query'), async (req, res, next) =>
     }
     if (isTrending === 'true') where.isTrending = true;
     if (sellerId) where.sellerId = sellerId;
+    if (brand) where.brand = { [Op.like]: `%${brand}%` };
 
     // Price range filter (parameterised — safe)
     if (minPrice !== undefined && parseFloat(minPrice) > 0) {
@@ -118,6 +119,7 @@ router.get('/', validate(productQuerySchema, 'query'), async (req, res, next) =>
     if (sort === 'price-low') order = [['price', 'ASC']];
     if (sort === 'price-high') order = [['price', 'DESC']];
     if (sort === 'rating') order = [['rating', 'DESC']];
+    if (sort === 'newest') order = [['createdAt', 'DESC']];
 
     const { count, rows } = await Product.findAndCountAll({
       where,

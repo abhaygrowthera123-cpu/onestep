@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { Op } from 'sequelize';
 import { Coupon } from '../models/index.js';
 import { authenticate, requireAdmin } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
@@ -33,6 +34,27 @@ router.post('/validate', async (req, res) => {
     discount: r.discount,
     code: r.coupon.code,
   });
+});
+
+/** GET /api/v1/coupons/public — active coupons for storefront */
+router.get('/public', async (_req, res, next) => {
+  try {
+    const now = new Date();
+    const rows = await Coupon.findAll({
+      where: {
+        isActive: true,
+        [Op.or]: [
+          { expiresAt: null },
+          { expiresAt: { [Op.gt]: now } },
+        ],
+      },
+      order: [['createdAt', 'DESC']],
+      attributes: ['id', 'code', 'type', 'value', 'minOrderAmount', 'maxDiscountAmount', 'expiresAt'],
+    });
+    res.json(rows);
+  } catch (e) {
+    next(e);
+  }
 });
 
 /** GET /api/v1/coupons — admin */

@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "node --watch src/index.js",
-    "start": "node src/index.js"
+    "start": "node src/index.js",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "cors": "^2.8.6",
@@ -28,5 +30,9 @@
     "sqlite3": "^5.1.7",
     "uuid": "^13.0.0",
     "winston": "^3.19.0"
+  },
+  "devDependencies": {
+    "supertest": "^7.1.4",
+    "vitest": "^3.2.4"
   }
 }

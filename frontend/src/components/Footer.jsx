@@ -2,28 +2,34 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Facebook, Twitter, Instagram, Youtube, Mail, Phone, MapPin, ArrowRight, ShieldCheck, CreditCard, Truck } from 'lucide-react';
 import { api } from '../services/api';
+import { LOGO_SRC } from '../lib/brand';
+import { useToast } from '../context/ToastContext';
 
 export const Footer = () => {
     const [categories, setCategories] = useState([]);
+    const { showToast } = useToast();
 
     useEffect(() => {
         const fetchCats = async () => {
             try {
                 const cats = await api.getCategories();
                 setCategories(cats || []);
-            } catch (err) { /* silent */ }
+            } catch (err) {
+                console.error(err);
+                showToast('Could not load categories', 'error');
+            }
         };
         fetchCats();
-    }, []);
+    }, [showToast]);
 
     return (<footer className="bg-slate-950 text-slate-400 pt-24 pb-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-16 mb-20">
           {/* Brand */}
           <div className="space-y-8">
-            <Link to="/" className="flex items-center space-x-2 sm:space-x-3 group">
-              <img src="/images/logo.png" alt="Onestep-Hub" className="w-10 h-8 sm:w-12 sm:h-10 md:w-14 md:h-12 object-contain group-hover:scale-110 transition-transform brightness-0 invert" />
-              <span className="text-lg sm:text-xl font-black tracking-tighter text-white">
+            <Link to="/" className="flex items-center space-x-3 group">
+              <img src="/images/logo.png" alt="Onestep-Hub" className="w-14 h-14 sm:w-16 sm:h-16 object-contain group-hover:scale-110 transition-transform brightness-0 invert" />
+              <span className="text-2xl sm:text-3xl font-black tracking-tighter text-white">
                 Onestep<span className="text-blue-500">-Hub</span>
               </span>
             </Link>

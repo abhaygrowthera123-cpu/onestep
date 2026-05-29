@@ -28,7 +28,7 @@ export const SellerLayout = ({ children }) => {
             <aside className="hidden lg:flex flex-col w-56 bg-white border-r border-gray-100 sticky top-0 h-screen overflow-y-auto custom-scrollbar flex-shrink-0">
                 <div className="p-6">
                     <Link to="/" className="flex items-center space-x-3 group">
-                        <img src="/images/logo.png" alt="Onestep-Hub" className="w-10 h-10 xl:w-12 xl:h-12 rounded-xl object-contain shadow-md shadow-slate-100 group-hover:scale-105 transition-transform" />
+                        <img src="/logo.svg" alt="Onestep-Hub" className="w-10 h-10 xl:w-12 xl:h-12 rounded-xl object-contain shadow-md shadow-slate-100 group-hover:scale-105 transition-transform" />
                         <div className="flex flex-col">
                             <span className="text-sm xl:text-base font-black text-slate-900 leading-none">Onestep<span className="text-blue-600">-Hub</span></span>
                             <span className="text-[8px] xl:text-[9px] font-black text-slate-400 uppercase tracking-widest">Seller Hub</span>
@@ -81,7 +81,7 @@ export const SellerLayout = ({ children }) => {
             {/* Mobile Header */}
             <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white border-b border-slate-100 z-[60] flex items-center justify-between px-4">
                 <Link to="/" className="flex items-center space-x-3 group">
-                    <img src="/images/logo.png" alt="Onestep-Hub" className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg object-contain" />
+                    <img src="/logo.svg" alt="Onestep-Hub" className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg object-contain" />
                     <span className="text-xs sm:text-sm font-black text-slate-900">Onestep<span className="text-blue-600">-Hub</span></span>
                 </Link>
                 <button 
@@ -110,7 +110,7 @@ export const SellerLayout = ({ children }) => {
                             className="fixed inset-y-0 left-0 w-56 bg-white z-[55] lg:hidden flex flex-col"
                         >
                             <div className="p-6 pt-20 flex items-center space-x-3">
-                                <img src="/images/logo.png" alt="Onestep-Hub" className="w-10 h-10 rounded-xl object-contain" />
+                                <img src="/logo.svg" alt="Onestep-Hub" className="w-10 h-10 rounded-xl object-contain" />
                                 <div className="flex flex-col">
                                     <span className="text-base font-black text-slate-900 leading-none">Onestep<span className="text-blue-600">-Hub</span></span>
                                     <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-0.5">Seller Hub</span>

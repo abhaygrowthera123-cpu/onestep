@@ -47,9 +47,9 @@ export const Navbar = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2 sm:space-x-3 group">
-            <img src="/images/logo.png" alt="Onestep-Hub" className="w-10 h-8 sm:w-12 sm:h-10 md:w-14 md:h-12 object-contain group-hover:scale-110 transition-transform" />
-            <span className="text-lg sm:text-xl font-black tracking-tighter text-slate-900 flex items-center">
+          <Link to="/" className="flex items-center space-x-3 group">
+            <img src="/images/logo.png" alt="Onestep-Hub" className="w-14 h-14 sm:w-16 sm:h-16 object-contain group-hover:scale-110 transition-transform" />
+            <span className="text-2xl sm:text-3xl font-black tracking-tighter text-slate-900 flex items-center group-hover:scale-105 transition-transform">
               Onestep<span className="text-blue-600">-Hub</span>
             </span>
           </Link>

@@ -24,12 +24,12 @@ const SAMPLE_CATEGORIES = [
   {
     name: 'Kids',
     description: 'Fashionable and comfortable clothing for children of all ages.',
-    image: 'https://images.unsplash.com/photo-1519233073526-69057b3026bb?auto=format&fit=crop&q=80&w=800',
+    image: '/uploads/images/cat-kids.png',
   },
   {
     name: 'Lifestyle',
     description: 'Elevate your daily living with curated home and utility essentials.',
-    image: 'https://images.unsplash.com/photo-1511499767390-903390e6fbc4?auto=format&fit=crop&q=80&w=800',
+    image: '/uploads/images/cat-lifestyle.png',
   },
 ];
 

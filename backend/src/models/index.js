@@ -37,6 +37,7 @@ if (process.env.DATABASE_URL) {
     },
   });
 } else if (DB_DIALECT === 'mysql') {
+  const useSSL = (process.env.DB_HOST && process.env.DB_HOST.includes('aivencloud.com')) || process.env.DB_SSL === 'true';
   sequelize = new Sequelize(
     process.env.DB_NAME || 'onestep_db',
     process.env.DB_USER || 'root',
@@ -47,6 +48,13 @@ if (process.env.DATABASE_URL) {
       dialect: 'mysql',
       logging: false,
       pool: { max: 10, min: 2, acquire: 30000, idle: 10000 },
+      dialectOptions: useSSL
+        ? {
+            ssl: {
+              rejectUnauthorized: false,
+            },
+          }
+        : undefined,
     }
   );
 } else {
